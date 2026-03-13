@@ -1,0 +1,82 @@
+[gd_scene load_steps=14 format=3 uid="uid://bws1bwb05l8kk"]
+
+[ext_resource type="Script" uid="uid://ba52y5x75uqmt" path="res://node_3d.gd" id="1_a202f"]
+[ext_resource type="PackedScene" uid="uid://cn1sjwatju8lo" path="res://player.tscn" id="2_i5arm"]
+[ext_resource type="Shader" uid="uid://1gst1wqbnax5" path="res://atmosphere_clouds.gdshader" id="3_r3fl7"]
+[ext_resource type="Script" uid="uid://dvlfbjxcd3jrp" path="res://sky_volume.gd" id="4_r3fl7"]
+[ext_resource type="Script" uid="uid://cvk6qi8yduu3h" path="res://sun_light.gd" id="6_i5arm"]
+[ext_resource type="Script" uid="uid://dfy5053tjfejv" path="res://data_manager.gd" id="7_wc5p8"]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_i5arm"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_i5arm"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wc5p8"]
+render_priority = 0
+shader = ExtResource("3_r3fl7")
+shader_parameter/ray_steps = 32
+shader_parameter/step_size = 250.0
+shader_parameter/density_scale = 0.03
+shader_parameter/cloud_bottom = 1500.0
+shader_parameter/cloud_top = 4000.0
+shader_parameter/coverage = 0.45
+shader_parameter/sun_dir = Vector3(0, 0.5, -0.8)
+shader_parameter/sky_top_color = Color(0.1, 0.4, 0.9, 1)
+shader_parameter/sky_horizon_color = Color(0.6, 0.75, 0.9, 1)
+shader_parameter/cloud_light = Color(1, 0.98, 0.95, 1)
+shader_parameter/cloud_shadow = Color(0.25, 0.3, 0.4, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jsk3o"]
+material = SubResource("ShaderMaterial_wc5p8")
+size = Vector3(10000, 5000, 10000)
+
+[sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_jka67"]
+turbidity = 4.75
+
+[sub_resource type="Sky" id="Sky_i5arm"]
+sky_material = SubResource("PhysicalSkyMaterial_jka67")
+
+[sub_resource type="Environment" id="Environment_wc5p8"]
+background_mode = 2
+background_energy_multiplier = 2.0
+sky = SubResource("Sky_i5arm")
+tonemap_mode = 3
+tonemap_exposure = 0.8
+ssil_enabled = true
+glow_enabled = true
+glow_intensity = 0.55
+fog_enabled = true
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.101
+
+[node name="Node3D" type="Node3D"]
+visible = false
+script = ExtResource("1_a202f")
+
+[node name="Player" parent="." instance=ExtResource("2_i5arm")]
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="Player"]
+replication_config = SubResource("SceneReplicationConfig_i5arm")
+
+[node name="SkyVolume" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1000, 0)
+material_override = SubResource("ShaderMaterial_i5arm")
+cast_shadow = 0
+mesh = SubResource("BoxMesh_jsk3o")
+script = ExtResource("4_r3fl7")
+
+[node name="SunLight" type="DirectionalLight3D" parent="."]
+shadow_enabled = true
+script = ExtResource("6_i5arm")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="SunLight"]
+environment = SubResource("Environment_wc5p8")
+
+[node name="DataManager" type="Node3D" parent="."]
+script = ExtResource("7_wc5p8")
+
+[node name="TerrainDetail" type="MeshInstance3D" parent="."]
+
+[node name="HTTPRequest" type="HTTPRequest" parent="."]
+
+[node name="GIManager" type="Node3D" parent="."]
